@@ -54,7 +54,7 @@ const AuthUserSlice = createSlice({
     builder.addCase(actRegister.rejected, (state, action) => {
       state.status = "rejected";
       if (action.payload && typeof action.payload === "string") {
-        state.error = action.payload;
+        state.error = action.payload.response.data?.error?.message;
         toast({
           title: action.payload.response?.data?.error?.message,
           position: "top-right",
@@ -93,7 +93,7 @@ const AuthUserSlice = createSlice({
     );
     builder.addCase(actLogin.rejected, (state, action) => {
       state.status = "rejected";
-      
+
       if (action.payload && typeof action.payload === "string") {
         state.error = action.payload;
         toast({

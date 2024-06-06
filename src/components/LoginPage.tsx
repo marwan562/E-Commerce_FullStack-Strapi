@@ -28,7 +28,7 @@ import { actLogin } from "../store/reducer/auth/act/actAuthUser";
 const LoginPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status } = useAppSelector((state) => state.user);
+  const { status, error } = useAppSelector((state) => state.user);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -43,6 +43,8 @@ const LoginPage = () => {
         navigate("/", { replace: true });
       });
   };
+
+  console.log(error);
 
   useEffect(() => {
     return () => {
@@ -75,7 +77,7 @@ const LoginPage = () => {
             <FormControl id="email">
               <FormLabel>Email address</FormLabel>
               <Input
-                isInvalid={errors.email ? true : false}
+                isInvalid={errors.email || error ? true : false}
                 {...register("email")}
                 type="text"
               />
@@ -89,7 +91,7 @@ const LoginPage = () => {
               <FormLabel>Password</FormLabel>
               <InputGroup>
                 <Input
-                  isInvalid={errors.password ? true : false}
+                  isInvalid={errors.password || error ? true : false}
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                 />

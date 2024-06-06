@@ -40,6 +40,7 @@ export const actLogin = createAsyncThunk(
       return res.data;
     } catch (err) {
       if (isAxiosError(err)) {
+
         return rejectWithValue(err.response.data.error.message);
       }
     }
