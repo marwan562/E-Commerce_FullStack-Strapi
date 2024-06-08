@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
   Flex,
   Box,
@@ -15,7 +16,7 @@ import {
   FormHelperText,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Link as LinkRouter, useNavigate } from "react-router-dom";
+import { Link as LinkRouter, Navigate, useNavigate } from "react-router-dom";
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +25,9 @@ import { useAppDispatch, useAppSelector } from "../store";
 import { actRegister } from "../store/reducer/auth/act/actAuthUser";
 import { removeStatusWithError } from "../store/reducer/auth/AuthUserSlice";
 
-const SignUpPage = () => {
+const SignUpPage = ({ isAuthenticated }: { isAuthenticated: string }) => {
+  if (isAuthenticated) return <Navigate to={"/"} replace />;
+
   const dispatch = useAppDispatch();
   const { status } = useAppSelector((state) => state.user);
   const navigate = useNavigate();
@@ -38,7 +41,7 @@ const SignUpPage = () => {
   const onSubmit: SubmitHandler<TSignUpSchema> = (data) => {
     const { firstName, email, lastName, password } = data;
     dispatch(
-        actRegister({
+      actRegister({
         username: `${firstName} ${lastName}`,
         email,
         password,
@@ -47,15 +50,14 @@ const SignUpPage = () => {
       .unwrap()
       .then(() => {
         navigate("/", { replace: true });
-      })
-      
+      });
   };
 
   useEffect(() => {
     return () => {
-        dispatch(removeStatusWithError())
-    }
-  })
+      dispatch(removeStatusWithError());
+    };
+  });
 
   return (
     <Flex
@@ -163,7 +165,9 @@ const SignUpPage = () => {
                 _hover={{
                   bg: "blue.500",
                 }}
-              >Sign up</Button>
+              >
+                Sign up
+              </Button>
             </Stack>
             <Stack pt={6}>
               <Text align={"center"}>

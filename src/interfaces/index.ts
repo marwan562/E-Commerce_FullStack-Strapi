@@ -36,6 +36,7 @@ export interface data {
   brand: string;
   category: Category;
   image: Image;
+  quantity?: number;
 }
 
 export interface Category {
@@ -109,3 +110,4 @@ export interface Pagination {
   pageCount: number;
   total: number;
 }
+

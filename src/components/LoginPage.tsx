@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import {
   Flex,
@@ -22,10 +23,12 @@ import { loginSchema, TLoginSchema } from "../validations/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { removeStatusWithError } from "../store/reducer/auth/AuthUserSlice";
 import { useAppDispatch, useAppSelector } from "../store";
-import { useNavigate } from "react-router-dom";
 import { actLogin } from "../store/reducer/auth/act/actAuthUser";
+import { Navigate, useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
+const LoginPage = ({ isAuthenticated }: { isAuthenticated: string }) => {
+  if (isAuthenticated) return <Navigate to={"/"} replace />;
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { status, error } = useAppSelector((state) => state.user);
@@ -39,18 +42,15 @@ const LoginPage = () => {
   const onSubmit: SubmitHandler<TLoginSchema> = (data) => {
     dispatch(actLogin({ identifier: data.email, password: data.password }))
       .unwrap()
-      .then(() => {
-        navigate("/", { replace: true });
-      });
+      .then(() => navigate("/", { replace: true }));
   };
-
-  console.log(error);
 
   useEffect(() => {
     return () => {
       dispatch(removeStatusWithError());
     };
   });
+
   return (
     <Flex
       minH={"100vh"}

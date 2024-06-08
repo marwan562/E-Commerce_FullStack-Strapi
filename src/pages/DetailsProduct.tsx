@@ -5,23 +5,27 @@ import { useParams } from "react-router-dom";
 import { useGetProductDetailsApiQuery } from "../store/queries/getProductsApi";
 import DetailsProductSkeleton from "../components/DetailsProductSkeleton";
 
-const DetailsProduct = () => {
-  const { id } = useParams();
+const DetailsProduct: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
 
   const { data, isLoading, isError } = useGetProductDetailsApiQuery(id);
-  const response = data?.data?.attributes;
 
   useEffect(() => {
-    document.title = `Details | ${response?.title}`;
-  });
+    if (data?.data?.attributes?.title) {
+      document.title = `Details | ${data.data.attributes.title}`;
+    }
+  }, [data]);
+
   return (
     <Box>
       {isLoading ? (
         <DetailsProductSkeleton />
       ) : isError ? (
         <p>Error</p>
+      ) : data && data.data ? (
+        <ProductDetails data={data.data} />
       ) : (
-        <ProductDetails response={response} />
+        <p>No data available</p>
       )}
     </Box>
   );

@@ -3,15 +3,18 @@ import ReactDOM from "react-dom/client";
 import MainLayout from "./layout/MainLayout";
 import { ChakraProvider } from "@chakra-ui/react";
 import { Provider } from "react-redux";
-import { store } from "./store";
+import { persistor, store } from "./store";
+import { PersistGate } from 'redux-persist/integration/react';
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>
-      <ChakraProvider>
-        <MainLayout />
-      </ChakraProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <ChakraProvider>
+          <MainLayout />
+        </ChakraProvider>
+      </PersistGate>
     </Provider>
   </React.StrictMode>
 );

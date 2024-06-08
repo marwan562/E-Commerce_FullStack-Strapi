@@ -20,9 +20,15 @@ const AuthUserSlice = createSlice({
   name: "authUserSlice",
   initialState,
   reducers: {
+    setUserDataAction: (state, action: PayloadAction<IUserData>) => {
+      state.userData = action.payload;
+    },
     removeStatusWithError: (state) => {
       state.status = "idle";
       state.error = null;
+    },
+    logOutUserAction: (state) => {
+      state.userData = null;
     },
   },
   extraReducers(builder) {
@@ -31,26 +37,31 @@ const AuthUserSlice = createSlice({
       state.status = "pending";
       state.error = null;
     });
-    builder.addCase(actRegister.fulfilled, (state, action) => {
-      state.status = "fullfilled";
-      state.userData = action.payload;
-      toast({
-        title: "You must be login your new account..!",
-        position: "top-right",
-        status: "warning",
-        isClosable: true,
-      });
-      setTimeout(
-        () =>
+    builder.addCase(
+      actRegister.fulfilled,
+      (state, action: PayloadAction<IUserData>) => {
+        state.status = "fullfilled";
+        if (action.payload) {
+          state.userData = action.payload;
           toast({
-            title: "Sign up successfully",
+            title: "You must be login your new account..!",
             position: "top-right",
-            status: "success",
+            status: "warning",
             isClosable: true,
-          }),
-        1000
-      );
-    });
+          });
+          setTimeout(
+            () =>
+              toast({
+                title: "Sign up successfully",
+                position: "top-right",
+                status: "success",
+                isClosable: true,
+              }),
+            1000
+          );
+        }
+      }
+    );
     builder.addCase(actRegister.rejected, (state, action) => {
       state.status = "rejected";
       if (action.payload && typeof action.payload === "string") {
@@ -73,8 +84,10 @@ const AuthUserSlice = createSlice({
       actLogin.fulfilled,
       (state, action: PayloadAction<IUserData>) => {
         state.status = "fullfilled";
-        state.userData = action.payload;
+        
         if (action.payload) {
+          state.userData = action.payload;
+         
           toast({
             title: `Login is successfully`,
             position: "top-right",
@@ -107,5 +120,6 @@ const AuthUserSlice = createSlice({
   },
 });
 
-export const { removeStatusWithError } = AuthUserSlice.actions;
+export const { removeStatusWithError, logOutUserAction  ,setUserDataAction} =
+  AuthUserSlice.actions;
 export default AuthUserSlice.reducer;

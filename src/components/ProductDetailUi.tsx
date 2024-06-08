@@ -17,18 +17,33 @@ import {
   StatLabel,
   StatNumber,
   StatHelpText,
+  useToast,
 } from "@chakra-ui/react";
 import { MdLocalShipping } from "react-icons/md";
-import { data } from "../interfaces";
+import { IProductTypes } from "../interfaces";
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../store";
+import { addToCartAction } from "../store/reducer/Cart/cartSlice";
 
-export default function ProductDetails({
-  response,
-}: {
-  response: data | undefined;
-}) {
+export default function ProductDetails({ data }: { data: IProductTypes }) {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const toast = useToast();
+  const response = data?.attributes;
+
+  const addToCartHandler = () => {
+    dispatch(addToCartAction(data));
+    toast({
+      title: `Successfully ${response.title} in Cart.`,
+      description: "We've created your account for you.",
+      position: "top-right",
+      status: "success",
+      duration: 3000,
+
+      isClosable: true,
+    });
+  };
 
   return (
     <Container maxW={"7xl"}>
@@ -61,14 +76,16 @@ export default function ProductDetails({
               fontWeight={600}
               fontSize={{ base: "2xl", sm: "4xl", lg: "5xl" }}
             >
-              Automatic Watch
+              {response.title}
             </Heading>
             <Stat>
               <Flex gap={2}>
                 <StatLabel fontSize={{ base: "2xl" }}>Price:</StatLabel>
                 <StatNumber>${response?.price}</StatNumber>
               </Flex>
-              <StatHelpText>{response?.updatedAt?.toString()}</StatHelpText>
+              <StatHelpText>
+                Updated At: {new Date(response?.updatedAt).toLocaleDateString()}
+              </StatHelpText>
             </Stat>
           </Box>
 
@@ -141,6 +158,7 @@ export default function ProductDetails({
           </Stack>
 
           <Button
+            onClick={addToCartHandler}
             rounded={"none"}
             w={"full"}
             mt={1}

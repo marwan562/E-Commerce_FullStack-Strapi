@@ -5,6 +5,9 @@ import ProductPage from "../pages/ProductPage";
 import ProductDetails from "../pages/DetailsProduct";
 import LoginPage from "../components/LoginPage";
 import SignUpPage from "../components/SignUpPage";
+import CookieService from "../services/CookieService";
+
+const token = CookieService.get("jwt");
 
 const router = createBrowserRouter([
   {
@@ -27,11 +30,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/auth/login",
-    element: <LoginPage />,
+    element: <LoginPage isAuthenticated={token} />,
   },
   {
     path: "/auth/signup",
-    element: <SignUpPage />,
+    element: <SignUpPage isAuthenticated={token} />,
   },
 ]);
 

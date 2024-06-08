@@ -11,7 +11,7 @@ export const queryProductsApi = createApi({
     getProducts: builder.query<IResProducts, string | void>({
       query: () => `/products?populate=category,image`,
     }),
-    getProductDetailsApi: builder.query<{data:IProductTypes}, string | void>({
+    getProductDetailsApi: builder.query<{data:IProductTypes | undefined}, string | void>({
       query: (id: string) => `/products/${id}?populate=category,image`,
     }),
   }),
