@@ -15,6 +15,8 @@ import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import AuthUserSlice from "./reducer/auth/AuthUserSlice";
 import cartSlice from "./reducer/Cart/cartSlice";
 import { queryCartsApi } from "./reducer/Cart/actCart/carQuery";
+import { productsDashboard } from "./queries/productsDashboard";
+import { categoriesApiQuery } from "./queries/categoriesApiQuery";
 
 // Persist configuration for the root state
 const rootPersistConfig = {
@@ -41,6 +43,8 @@ const rootReducer = combineReducers({
   cart: persistReducer(cartPersistConfig, cartSlice),
   [queryProductsApi.reducerPath]: queryProductsApi.reducer,
   [queryCartsApi.reducerPath]: queryCartsApi.reducer, // Added queryCartsApi reducer
+  [productsDashboard.reducerPath]: productsDashboard.reducer,
+  [categoriesApiQuery.reducerPath]: categoriesApiQuery.reducer,
 });
 
 // Apply persistence to the combined reducer
@@ -54,7 +58,12 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(queryProductsApi.middleware, queryCartsApi.middleware), // Added queryCartsApi middleware
+    }).concat(
+      queryProductsApi.middleware,
+      queryCartsApi.middleware,
+      productsDashboard.middleware,
+      categoriesApiQuery.middleware
+    ), // Added queryCartsApi middleware
 });
 
 // Set up the persistor
