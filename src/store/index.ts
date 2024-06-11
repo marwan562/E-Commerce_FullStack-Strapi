@@ -17,6 +17,7 @@ import cartSlice from "./reducer/Cart/cartSlice";
 import { queryCartsApi } from "./reducer/Cart/actCart/carQuery";
 import { productsDashboard } from "./queries/productsDashboard";
 import { categoriesApiQuery } from "./queries/categoriesApiQuery";
+import paginationSlice from "./reducer/paginationSlice";
 
 // Persist configuration for the root state
 const rootPersistConfig = {
@@ -36,11 +37,17 @@ const cartPersistConfig = {
   storage,
   whitelist: ["cartItems"], // Corrected from whiteList to whitelist
 };
+const paginationPersistConfig = {
+  key: "pagination",
+  storage,
+  whitelist: ["page", "pageSize"], // Corrected from whiteList to whitelist
+};
 
 // Combine reducers with persisted reducers
 const rootReducer = combineReducers({
   user: persistReducer(authPersistConfig, AuthUserSlice),
   cart: persistReducer(cartPersistConfig, cartSlice),
+  pagination: persistReducer(paginationPersistConfig, paginationSlice),
   [queryProductsApi.reducerPath]: queryProductsApi.reducer,
   [queryCartsApi.reducerPath]: queryCartsApi.reducer, // Added queryCartsApi reducer
   [productsDashboard.reducerPath]: productsDashboard.reducer,

@@ -20,17 +20,59 @@ export const productsDashboard = createApi({
     },
   }),
   endpoints: (build) => ({
-    productDashboard: build.query<IResProducts | undefined,number>({
-      query: (page) =>
-        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=6`,
+    //GET
+    productDashboard: build.query<IResProducts | undefined, {page:number , pageSize:number}>({
+      query: ({page ,pageSize}) =>
+        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
       providesTags: (result) =>
         result
           ? [
-              ...result.data.map(({ id }:{id:number}) => ({ type: "Products", id })),
+              ...result.data.map(({ id }: { id: number }) => ({
+                type: "Products",
+                id,
+              })),
               { type: "Products", id: "LIST" },
             ]
           : [{ type: "Products", id: "LIST" }],
     }),
+    // PUT
+    updateProduct: build.mutation({
+      query: ({ id, body }) => ({
+        url: `/products/${id}`,
+        method: "PUT",
+        body: body,
+      }),
+
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          productsDashboard.util.updateQueryData(
+            "productDashboard",
+            id,
+            (draft) => {
+              Object.assign(draft, patch);
+            }
+          )
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
+
+    // POST
+    createProduct: build.mutation({
+      query: (body) => ({
+        url: `/products`,
+        method: "POST",
+        body: body,
+      }),
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
+    }),
+
+    // DELETE
     removeProduct: build.mutation<IResProducts, number>({
       query: (id) => ({
         url: `/products/${id}`,
@@ -42,5 +84,9 @@ export const productsDashboard = createApi({
 });
 
 // Export hooks for usage in functional components
-export const { useProductDashboardQuery, useRemoveProductMutation } =
-  productsDashboard;
+export const {
+  useProductDashboardQuery,
+  useRemoveProductMutation,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+} = productsDashboard;

@@ -1,10 +1,9 @@
 import {
-  Box,
   Button,
+  Flex,
   FormControl,
   FormHelperText,
   Icon,
-  Image,
   Input,
   InputGroup,
   InputLeftElement,
@@ -15,7 +14,7 @@ import {
   TableCaption,
   TableContainer,
   Tbody,
-  Td,
+  Text,
   Textarea,
   Tfoot,
   Th,
@@ -24,15 +23,14 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { AiOutlineEye } from "react-icons/ai";
 import {
+  useCreateProductMutation,
   useProductDashboardQuery,
   useRemoveProductMutation,
+  useUpdateProductMutation,
 } from "../store/queries/productsDashboard";
-import { MdOutlineDelete, MdOutlineEdit } from "react-icons/md";
-import { Link } from "react-router-dom";
 import AlertDilog from "./Feedback/AlertDilog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModalDashboard from "../shared/ModalDashboard";
 import { CheckIcon, SmallCloseIcon } from "@chakra-ui/icons";
 import { inputsDataText } from "../data/inputsData";
@@ -43,8 +41,14 @@ import {
   dashboardProductsSchema,
   TdashboardProductsSchema,
 } from "../validations/dashboardProducts";
+import { VscGitPullRequestCreate } from "react-icons/vsc";
 import ProductTableSkeleton from "./ProductTableSkeleton";
 import { IoImageOutline } from "react-icons/io5";
+import ProductTableRow from "./ProductTableRow";
+import FormEditProduct from "./FormEditProduct";
+import { useAppDispatch, useAppSelector } from "../store";
+import { cleanPage, getPageSize } from "../store/reducer/paginationSlice";
+import renderButtonsPagination from "./renderButtonsPagination";
 
 const tHeadTable: string[] = [
   "id",
@@ -58,24 +62,39 @@ const tHeadTable: string[] = [
 
 const ProductsTable = () => {
   const toast = useToast();
-  const [idRemoveItem, setIdRemoveItem] = useState<number>(0);
+  const dispatch = useAppDispatch();
   const [fileName, setFileName] = useState("");
-  const { data, isLoading: loadData } = useProductDashboardQuery(1);
-  const { data: categoriesData } = useGetCategoriesQuery("categoriesApiQuery");
-  const [removeProduct, { isLoading: loadRemove, error: errRemove }] =
-    useRemoveProductMutation();
+  const [idRemoveItem, setIdRemoveItem] = useState<number>(0);
+  const { page, pageSize } = useAppSelector((state) => state.pagination);
   const { onOpen, isOpen, onClose } = useDisclosure();
   const {
     onOpen: onOpenEdit,
     isOpen: isOpenEdit,
     onClose: onCloseEdit,
   } = useDisclosure();
-  // form handler
+  const {
+    onOpen: onOpenCreate,
+    isOpen: isOpenCreate,
+    onClose: onCloseCreate,
+  } = useDisclosure();
+
+  //RTK Queries
+  const { data, isLoading: loadData } = useProductDashboardQuery({
+    page,
+    pageSize,
+  });
+  const { data: categoriesData } = useGetCategoriesQuery("categoriesApiQuery");
+  const [removeProduct, { isLoading: loadRemove, error: errRemove }] =
+    useRemoveProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+
+  // React Hook Form To Edit Prodduct handler
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    getValues,
     formState: { errors },
   } = useForm<TdashboardProductsSchema>({
     resolver: zodResolver(dashboardProductsSchema),
@@ -83,16 +102,97 @@ const ProductsTable = () => {
 
   const onSubmit: SubmitHandler<TdashboardProductsSchema> = (data) => {
     if (fileName) {
-      console.log("File", fileName);
-      console.log(data);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(data));
+      formData.append("category.category", data.category);
+      formData.append("files.image", fileName);
+      updateProduct({ id: idRemoveItem, body: formData })
+        .unwrap()
+        .then(() => {
+          onCloseEdit();
+          toast({
+            title: "Updating successfully.",
+            description: "We are updating the Product .",
+            status: "success",
+            position: "top-right",
+            duration: 3000,
+            isClosable: true,
+          });
+          onClose();
+        })
+        .catch(() => {
+          toast({
+            title: "Error: With Updating try again.",
+            description: `${errRemove}`,
+            status: "error",
+            position: "top-right",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
     }
   };
 
-  if (loadData) return <ProductTableSkeleton />;
+  // React Hook Form To Edit Prodduct handler
+  const {
+    register: registerToCreate,
+    handleSubmit: handleSubmitToCreate,
+    getValues: getValuesCreate,
+    reset,
+    setError,
+    formState: { errors: errorsToCreate },
+  } = useForm<TdashboardProductsSchema>({
+    resolver: zodResolver(dashboardProductsSchema),
+  });
+
+  const onSubmitToCreate: SubmitHandler<TdashboardProductsSchema> = (data) => {
+    if (fileName) {
+      console.log(data);
+      console.log("file", fileName);
+
+      const formData = new FormData();
+
+      formData.append("data", JSON.stringify(data));
+      formData.append("category.category", JSON.stringify(data.category));
+      formData.append("files.image", fileName);
+
+      createProduct(formData)
+        .unwrap()
+        .then(() => {
+          onCloseCreate();
+          reset();
+          toast({
+            title: "Creating successfully.",
+            description: "We are Create new Product .",
+            status: "success",
+            position: "top-right",
+            duration: 3000,
+            isClosable: true,
+          });
+          onClose();
+        })
+        .catch(() => {
+          toast({
+            title: "Error: With Creating try again.",
+            // description: `${errRemove}`,
+            status: "error",
+            position: "top-right",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  };
+
   //Remove item handler
   const openRemoveItemHanlder = (id: number) => {
     setIdRemoveItem(id);
     onOpen();
+  };
+  //Update item handler
+  const openUpdateItemHanlder = (id: number) => {
+    setIdRemoveItem(id);
+    onOpenEdit();
   };
 
   const removeItemFromProduct = () => {
@@ -121,116 +221,104 @@ const ProductsTable = () => {
       });
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLElement>) => {
-    const file = event.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent) => {
+    const file = e.target.files[0];
     if (file) {
       setFileName(file);
     }
   };
 
+  //renders
+
+  const rederTHeadTable = tHeadTable.map((head, inx) => (
+    <Th key={inx}>{head} </Th>
+  ));
+
+  useEffect(() => {
+    return () => {
+      dispatch(cleanPage());
+    };
+  }, [dispatch]);
+
   return (
-    <>
+    <Flex direction={"column"}>
+      {/* Add Product */}
+      <Flex>
+        <Button
+          onClick={onOpenCreate}
+          colorScheme="green"
+          mb={2}
+          mx={4}
+          ml={"auto"}
+        >
+          <Text mr={2}> Create Product</Text>
+          <Icon as={VscGitPullRequestCreate} />
+        </Button>
+      </Flex>
+      {/* Table Products */}
       <TableContainer>
         <Table variant="simple">
-          <TableCaption>Imperial to metric conversion factors</TableCaption>
+          <TableCaption>
+            Total Products: {data?.meta.pagination.total}
+          </TableCaption>
           <Thead>
-            <Tr>
-              {tHeadTable.map((head, inx) => (
-                <Th key={inx}>{head} </Th>
-              ))}
-            </Tr>
+            <Tr>{rederTHeadTable}</Tr>
           </Thead>
           <Tbody>
-            {data?.data.map(
-              (
-                {
-                  id,
-                  attributes: {
-                    title,
-                    category,
-                    brand,
-                    description,
-                    discountPercentage,
-                    image,
-                    price,
-                    stock,
-                  },
-                },
-                inx
-              ) => {
-                return (
-                  <>
-                    <Tr key={id}>
-                      <Td>{++inx}</Td>
-                      <Td>{title}</Td>
-                      <Td>{category.data.attributes.category}</Td>
-                      <Td>
-                        <Image
-                          src={`${import.meta.env.VITE_SERVER_URL}${
-                            image.data.attributes.url
-                          }`}
-                          alt={title}
-                          borderRadius={"full"}
-                          objectFit={"cover"}
-                          boxSize={"40px"}
-                        />
-                      </Td>
-                      <Td>${price}</Td>
-                      <Td>{stock}</Td>
-                      <Td>
-                        <Button
-                          as={Link}
-                          to={`/products/${id}`}
-                          title="Show-item"
-                          mr={3}
-                          colorScheme={"purple"}
-                        >
-                          <AiOutlineEye size={17} />
-                        </Button>
-                        <Button
-                          onClick={() => openRemoveItemHanlder(id)}
-                          mr={3}
-                          title="Remove-item"
-                          colorScheme={"red"}
-                        >
-                          <MdOutlineDelete size={17} />
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setValue("title", title);
-                            setValue("price", price);
-                            setValue("stock", stock);
-                            setValue("brand", brand);
-                            setValue("description", description);
-                            setValue(
-                              "category",
-                              category.data.attributes.category
-                            );
-                            setValue("discountPercentage", discountPercentage);
-                            onOpenEdit();
-                          }}
-                          mr={3}
-                          title="Edit-item"
-                          colorScheme={"blue"}
-                        >
-                          <MdOutlineEdit size={17} />
-                        </Button>
-                      </Td>
-                    </Tr>
-                  </>
-                );
-              }
+            {loadData && <ProductTableSkeleton />}
+            {(data?.data?.length ?? 0) > 0 ? (
+              data?.data?.map((el, inx) => (
+                <ProductTableRow
+                  key={inx}
+                  onOpenEdit={onOpenEdit}
+                  openUpdateItemHanlder={openUpdateItemHanlder}
+                  openRemoveItemHanlder={openRemoveItemHanlder}
+                  setValue={setValue}
+                  {...el}
+                />
+              ))
+            ) : (
+              <Text>No Products</Text>
             )}
           </Tbody>
           <Tfoot>
-            <Tr>
-              {tHeadTable.map((head, inx) => (
-                <Th key={inx}>{head} </Th>
-              ))}
-            </Tr>
+            <Tr>{rederTHeadTable}</Tr>
           </Tfoot>
         </Table>
       </TableContainer>
+      {/* Pagination */}
+      <Flex mr={12} gap={2} justifyContent={"space-around"}>
+        <Select
+          onChange={(e) => dispatch(getPageSize(e.target.value))}
+          textAlign={"center"}
+          textColor={"white"}
+          bg={"green.400"}
+          w={20}
+        >
+          <option disabled>Size Products</option>
+          <option style={{ color: "black" }} value={10}>
+            10
+          </option>
+          <option style={{ color: "black" }} value={20}>
+            20
+          </option>
+          <option style={{ color: "black" }} value={40}>
+            40
+          </option>
+          <option style={{ color: "black" }} value={60}>
+            60
+          </option>
+          <option style={{ color: "black" }} value={100}>
+            100
+          </option>
+        </Select>
+
+        {renderButtonsPagination({
+          currentPage: page,
+          loadData,
+          totalPages: data?.meta?.pagination?.pageCount ?? 1,
+        })}
+      </Flex>
 
       {/* Remove item */}
       <AlertDilog
@@ -250,53 +338,117 @@ const ProductsTable = () => {
         </Button>
       </AlertDilog>
 
+      {/* Modal Create product */}
+      <ModalDashboard
+        onClose={() => {
+          onCloseCreate();
+          setError("root", { message: "" });
+          setFileName("");
+        }}
+        isOpen={isOpenCreate}
+        title="Create Product"
+      >
+        <FormControl
+          as={"form"}
+          onSubmit={handleSubmitToCreate(onSubmitToCreate)}
+        >
+          {inputsDataText.map((el, inx) => (
+            <FormEditProduct
+              register={registerToCreate}
+              errors={errorsToCreate}
+              getValue={getValuesCreate}
+              key={inx}
+              {...el}
+            />
+          ))}
+
+          {/* upload file image */}
+
+          <InputGroup>
+            <InputLeftElement
+              pointerEvents="none"
+              color="gray.300"
+              fontSize="1.2em"
+            >
+              <Icon as={IoImageOutline} />
+            </InputLeftElement>
+            <Input
+              isInvalid={errorsToCreate && !fileName}
+              onChange={handleFileChange}
+              type={"file"}
+              placeholder={"Select Image File . . ."}
+            />
+            <InputRightElement>
+              {fileName && <CheckIcon color="green.500" />}
+              {!fileName && <SmallCloseIcon boxSize={6} color={"red.500"} />}
+            </InputRightElement>
+          </InputGroup>
+          {!fileName && (
+            <FormHelperText mb={3} color={"red.400"}>
+              File image required.
+            </FormHelperText>
+          )}
+
+          {/* select categories */}
+          <Select {...registerToCreate("category")} mb={3} variant="outline">
+            <option disabled>Categories</option>
+            {categoriesData?.data.map(({ id, attributes }) => (
+              <option key={id} value={id}>
+                {attributes?.category}
+              </option>
+            ))}
+          </Select>
+          <Textarea
+            isInvalid={errorsToCreate["description"] ? true : false}
+            {...registerToCreate("description")}
+            placeholder="Enter Description..."
+          />
+          <FormHelperText color={"red.400"}>
+            {errorsToCreate["description"]?.message}
+          </FormHelperText>
+          <ModalFooter>
+            <Button
+              mr={3}
+              onClick={() => {
+                onCloseCreate();
+                setFileName("");
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              isLoading={isCreating}
+              loadingText={"Creating..."}
+              type="submit"
+              colorScheme="green"
+              variant="outline"
+            >
+              Creating
+            </Button>
+          </ModalFooter>
+        </FormControl>
+      </ModalDashboard>
       {/* Modal edit product */}
       <ModalDashboard
-        isOpen={isOpenEdit}
-        title="Edit product"
         onClose={() => {
           onCloseEdit();
           setFileName("");
+          setError("root", { message: "" });
         }}
+        isOpen={isOpenEdit}
+        title="Edit product"
       >
         <FormControl as={"form"} onSubmit={handleSubmit(onSubmit)}>
-          {inputsDataText.map(
-            ({ icon, name, type, placeholder, valueAsNumber }, inx) => (
-              <Box mb={3} key={inx}>
-                <InputGroup>
-                  <InputLeftElement
-                    pointerEvents="none"
-                    color="gray.300"
-                    fontSize="1.2em"
-                  >
-                    <Icon as={icon} />
-                  </InputLeftElement>
-                  <Input
-                    isInvalid={errors[name] ? true : false}
-                    {...register(name, { valueAsNumber })}
-                    type={type}
-                    placeholder={placeholder}
-                    color={errors[name] && "tomato"}
-                    _placeholder={{ opacity: 0.6, color: "inherit" }}
-                  />
+          {inputsDataText.map((el, inx) => (
+            <FormEditProduct
+              register={register}
+              errors={errors}
+              getValue={getValues}
+              key={inx}
+              {...el}
+            />
+          ))}
 
-                  <InputRightElement>
-                    {watch([name]) && !errors[name] && (
-                      <CheckIcon color="green.500" />
-                    )}
-                    {errors[name] && (
-                      <SmallCloseIcon boxSize={6} color={"red.500"} />
-                    )}
-                  </InputRightElement>
-                </InputGroup>
-                {errors[name] && (
-                  <FormHelperText color={"red.400"}>
-                    {errors[name].message}
-                  </FormHelperText>
-                )}
-              </Box>
-            )
-          )}
           {/* update file image */}
 
           <InputGroup mb={3}>
@@ -322,8 +474,8 @@ const ProductsTable = () => {
           <Select {...register("category")} mb={3} variant="outline">
             <option disabled>Categories</option>
             {categoriesData?.data.map(({ id, attributes }) => (
-              <option key={id} value={attributes.category}>
-                {attributes.category}
+              <option key={id} value={id}>
+                {attributes?.category}
               </option>
             ))}
           </Select>
@@ -333,16 +485,28 @@ const ProductsTable = () => {
             placeholder="Here is a sample placeholder"
           />
           <ModalFooter>
-            <Button mr={3} onClick={onClose}>
+            <Button
+              mr={3}
+              onClick={() => {
+                onCloseEdit();
+                setFileName("");
+              }}
+            >
               Close
             </Button>
-            <Button type="submit" colorScheme="blue" variant="outline">
+            <Button
+              isLoading={isUpdating}
+              loadingText={"Update"}
+              type="submit"
+              colorScheme="blue"
+              variant="outline"
+            >
               Edit
             </Button>
           </ModalFooter>
         </FormControl>
       </ModalDashboard>
-    </>
+    </Flex>
   );
 };
 
