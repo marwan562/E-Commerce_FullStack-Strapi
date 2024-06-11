@@ -23,7 +23,7 @@ export const productsDashboard = createApi({
     //GET
     productDashboard: build.query<IResProducts | undefined, {page:number , pageSize:number}>({
       query: ({page ,pageSize}) =>
-        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=${pageSize}&createdAt:desc`,
       providesTags: (result) =>
         result
           ? [
