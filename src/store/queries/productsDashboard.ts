@@ -21,9 +21,12 @@ export const productsDashboard = createApi({
   }),
   endpoints: (build) => ({
     //GET
-    productDashboard: build.query<IResProducts | undefined, {page:number , pageSize:number}>({
-      query: ({page ,pageSize}) =>
-        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=${pageSize}&createdAt:desc`,
+    productDashboard: build.query<
+      IResProducts | undefined,
+      { page: number; pageSize: number; created_At: "desc" | "asc" }
+    >({
+      query: ({ page, pageSize, created_At }) =>
+        `/products?populate=image,category&pagination[page]=${page}&pagination[pageSize]=${pageSize}&sort=createdAt:${created_At}`,
       providesTags: (result) =>
         result
           ? [

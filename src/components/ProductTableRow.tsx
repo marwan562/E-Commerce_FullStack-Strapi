@@ -38,9 +38,9 @@ const ProductTableRow = ({
         <Td>{category?.data?.attributes?.category}</Td>
         <Td>
           <ImageChakra
-            src={`${import.meta.env.VITE_SERVER_URL}${
-              image?.data?.attributes?.url
-            }`}
+            src={
+              image?.data?.attributes?.formats.thumbnail.url
+            }
             alt={title}
             borderRadius={"full"}
             objectFit={"cover"}
@@ -76,6 +76,7 @@ const ProductTableRow = ({
               setValue("description", description);
               setValue("category", String(category?.data?.id));
               setValue("discountPercentage", discountPercentage);
+              
               openUpdateItemHanlder(id);
             }}
             mr={3}

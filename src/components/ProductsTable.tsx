@@ -47,8 +47,9 @@ import { IoImageOutline } from "react-icons/io5";
 import ProductTableRow from "./ProductTableRow";
 import FormEditProduct from "./FormEditProduct";
 import { useAppDispatch, useAppSelector } from "../store";
-import { cleanPage, getPageSize } from "../store/reducer/paginationSlice";
+import { cleanPage } from "../store/reducer/paginationSlice";
 import renderButtonsPagination from "./renderButtonsPagination";
+import PaginationProducts from "./PaginationProducts";
 
 const tHeadTable: string[] = [
   "id",
@@ -65,7 +66,11 @@ const ProductsTable = () => {
   const dispatch = useAppDispatch();
   const [fileName, setFileName] = useState("");
   const [idRemoveItem, setIdRemoveItem] = useState<number>(0);
-  const { page, pageSize } = useAppSelector((state) => state.pagination);
+  const { network } = useAppSelector((state) => state.network);
+  const { page, pageSize, created_At } = useAppSelector(
+    (state) => state.pagination
+  );
+
   const { onOpen, isOpen, onClose } = useDisclosure();
   const {
     onOpen: onOpenEdit,
@@ -82,6 +87,7 @@ const ProductsTable = () => {
   const { data, isLoading: loadData } = useProductDashboardQuery({
     page,
     pageSize,
+    created_At,
   });
   const { data: categoriesData } = useGetCategoriesQuery("categoriesApiQuery");
   const [removeProduct, { isLoading: loadRemove, error: errRemove }] =
@@ -262,11 +268,11 @@ const ProductsTable = () => {
             Total Products: {data?.meta.pagination.total}
           </TableCaption>
           <Thead>
-            <Tr>{rederTHeadTable}</Tr>
+            <Tr>{network && rederTHeadTable}</Tr>
           </Thead>
+          {loadData || (!network && <ProductTableSkeleton />)}
           <Tbody>
-            {loadData && <ProductTableSkeleton />}
-            {(data?.data?.length ?? 0) > 0 ? (
+            {network && !loadData && (data?.data?.length ?? 0) > 0 ? (
               data?.data?.map((el, inx) => (
                 <ProductTableRow
                   key={inx}
@@ -277,47 +283,21 @@ const ProductsTable = () => {
                   {...el}
                 />
               ))
-            ) : (
+            ) : !network && !loadData ? null : (
               <Text>No Products</Text>
             )}
           </Tbody>
-          <Tfoot>
-            <Tr>{rederTHeadTable}</Tr>
-          </Tfoot>
         </Table>
       </TableContainer>
       {/* Pagination */}
       <Flex mr={12} gap={2} justifyContent={"space-around"}>
-        <Select
-          onChange={(e) => dispatch(getPageSize(e.target.value))}
-          textAlign={"center"}
-          textColor={"white"}
-          bg={"green.400"}
-          w={20}
-        >
-          <option disabled>Size Products</option>
-          <option style={{ color: "black" }} value={10}>
-            10
-          </option>
-          <option style={{ color: "black" }} value={20}>
-            20
-          </option>
-          <option style={{ color: "black" }} value={40}>
-            40
-          </option>
-          <option style={{ color: "black" }} value={60}>
-            60
-          </option>
-          <option style={{ color: "black" }} value={100}>
-            100
-          </option>
-        </Select>
-
-        {renderButtonsPagination({
-          currentPage: page,
-          loadData,
-          totalPages: data?.meta?.pagination?.pageCount ?? 1,
-        })}
+        <PaginationProducts>
+          {renderButtonsPagination({
+            currentPage: page,
+            loadData,
+            totalPages: data?.meta?.pagination?.pageCount ?? 1,
+          })}
+        </PaginationProducts>
       </Flex>
 
       {/* Remove item */}

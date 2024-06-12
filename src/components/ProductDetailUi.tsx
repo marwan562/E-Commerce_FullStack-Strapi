@@ -18,6 +18,7 @@ import {
   StatNumber,
   StatHelpText,
   useToast,
+  Badge,
 } from "@chakra-ui/react";
 import { MdLocalShipping } from "react-icons/md";
 import { IProductTypes } from "../interfaces";
@@ -124,34 +125,34 @@ export default function ProductDetails({ data }: { data: IProductTypes }) {
                   <Text as={"span"} fontWeight={"bold"}>
                     Stock:
                   </Text>{" "}
-                  {response?.stock}
+                  <Badge colorScheme="red"> {response?.stock}</Badge>
                 </ListItem>
                 <ListItem>
                   <Text as={"span"} fontWeight={"bold"}>
                     Brand:
                   </Text>{" "}
-                  {response?.brand}
+                  <Badge colorScheme="cyan">  {response?.brand}</Badge>
                 </ListItem>
                 <ListItem>
                   <Text as={"span"} fontWeight={"bold"}>
                     Discount:
                   </Text>{" "}
-                  %
+                  <Badge colorScheme="gray">  %
                   {response?.discountPercentage
                     ? (response?.discountPercentage * 1) % 100
-                    : 0}
+                    : 0}</Badge>
                 </ListItem>
                 <ListItem>
                   <Text as={"span"} fontWeight={"bold"}>
                     Category:
                   </Text>{" "}
-                  {response?.category.data.attributes.category}
+                  <Badge colorScheme="yellow"> {response?.category.data.attributes.category}</Badge>
                 </ListItem>
                 <ListItem>
                   <Text as={"span"} fontWeight={"bold"}>
                     Dial color:
                   </Text>{" "}
-                  Black
+                  <Badge colorScheme="orange">  Black</Badge>
                 </ListItem>
               </List>
             </Box>

@@ -38,6 +38,7 @@ export const actLogin = createAsyncThunk(
         `${import.meta.env.VITE_SERVER_URL}/api/auth/local`,
         data
       );
+
       const date = new Date();
       const IN_DAYS = 3;
       const EXPIRES_IN_DAY = 1000 * 60 * 60 * 24 * IN_DAYS;
@@ -50,7 +51,7 @@ export const actLogin = createAsyncThunk(
       return res.data;
     } catch (err) {
       if (isAxiosError(err)) {
-        return rejectWithValue(err.response.data.error.message);
+        return rejectWithValue(err?.response?.data?.error?.message);
       }
     }
   }

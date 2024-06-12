@@ -34,7 +34,9 @@ export default function Nav() {
   );
 
   useEffect(() => {
-    dispatch(logOutUserAction());
+    if (!token) {
+      dispatch(logOutUserAction());
+    }
   }, [dispatch, token]);
 
   return (

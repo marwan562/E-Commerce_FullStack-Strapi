@@ -18,6 +18,7 @@ import { queryCartsApi } from "./reducer/Cart/actCart/carQuery";
 import { productsDashboard } from "./queries/productsDashboard";
 import { categoriesApiQuery } from "./queries/categoriesApiQuery";
 import paginationSlice from "./reducer/paginationSlice";
+import network from "./reducer/network";
 
 // Persist configuration for the root state
 const rootPersistConfig = {
@@ -45,6 +46,7 @@ const paginationPersistConfig = {
 
 // Combine reducers with persisted reducers
 const rootReducer = combineReducers({
+  network,
   user: persistReducer(authPersistConfig, AuthUserSlice),
   cart: persistReducer(cartPersistConfig, cartSlice),
   pagination: persistReducer(paginationPersistConfig, paginationSlice),

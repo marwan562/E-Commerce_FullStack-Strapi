@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import LoadingBar from "react-top-loading-bar";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import HomePage from "../pages";
 import NavLayout from "../pages/NavLayout";
@@ -66,7 +68,13 @@ const router = createBrowserRouter([
 ]);
 
 const MainLayout = () => {
-  return <RouterProvider router={router} />;
+  const ref = useRef(null);
+  return (
+    <>
+      <LoadingBar color="#333" ref={ref} />
+      <RouterProvider router={router} />
+    </>
+  );
 };
 
 export default MainLayout;
